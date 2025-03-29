@@ -25,7 +25,7 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public Student getbyId(int id) {
+    public Student getbyId(Long id) {
         return null;
     }
 
@@ -59,7 +59,7 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public void delete(int id) {
+    public void delete(Long id) {
 
     }
 
