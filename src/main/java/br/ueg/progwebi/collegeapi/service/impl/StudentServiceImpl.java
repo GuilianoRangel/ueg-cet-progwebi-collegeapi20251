@@ -3,12 +3,13 @@ package br.ueg.progwebi.collegeapi.service.impl;
 import br.ueg.progwebi.collegeapi.model.Student;
 import br.ueg.progwebi.collegeapi.repository.StudentRepository;
 import br.ueg.progwebi.collegeapi.service.StudentService;
+import br.ueg.progwebi.collegeapi.service.exceptions.BusinessException;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -26,25 +27,45 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public Student getbyId(Long id) {
+        Optional<Student> student = this.repository.findById(id);
+        if (student.isPresent()) {
+            return student.get();
+        }
         return null;
     }
 
     @Override
     public Student create(Student student) {
-        if(Strings.isEmpty(student.getName())){
-            throw new RuntimeException("Name cannot be empty");
-        }
-
-        Optional<Student> checkExist = repository.findById(student.getId());
-        if(checkExist.isPresent()){
-            throw new RuntimeException("Student already exists");
-        }
-        Optional<Student> checkExist2 = repository.findByName(student.getName());
-        if(checkExist2.isPresent()){
-            throw new RuntimeException("Student with this name already exists");
-        }
+        createValidation(student);
+        prepareToCreate(student);
         return repository.save(student);
 
+    }
+
+    private Student prepareToCreate(Student student) {
+        student.setRegisterDate(LocalDate.now());
+        student.setRegisterNumber(getNewRegisterNumberStudent());
+        return student;
+    }
+
+    private String getNewRegisterNumberStudent() {
+        Optional<Student> topByOrderByIdDesc = this.repository.findTopByOrderByIdDesc();
+        Student topStudent = topByOrderByIdDesc.orElse(Student.builder().id(0L).build());
+        Long newId = topStudent.getId()+1;
+        Integer year = LocalDate.now().getYear();
+        return year.toString().concat(newId.toString());
+    }
+
+    private void createValidation(Student student) {
+        if(Strings.isEmpty(student.getName())){
+            throw new BusinessException("Name não pode ser nulo ou vazio");
+        }
+
+        Optional<Student> checkExist2 = repository.findByName(student.getName());
+        if(checkExist2.isPresent()){
+            throw new BusinessException("Já existe um estudante com esse nome:"+student
+                    .getName());
+        }
     }
 
     @Override
@@ -59,8 +80,21 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public void delete(Long id) {
+    public Student delete(Long id) {
+        Optional<Student> student = repository.findById(id);
 
+        if(Boolean.FALSE.equals(student.isPresent())){
+            throw new BusinessException("Student id: "+id+" não encontrado", 404);
+        }
+
+        try {
+            repository.delete(student.get());
+        }catch (DataIntegrityViolationException e){
+            throw new BusinessException("Student id: "+id+" não pode ser removido," +
+                    " por questões de integridade");
+        }
+
+        return student.get();
     }
 
     @Override

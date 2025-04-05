@@ -1,11 +1,11 @@
 package br.ueg.progwebi.collegeapi.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+
+import static jakarta.persistence.GenerationType.SEQUENCE;
 
 @Getter
 @Setter
@@ -15,8 +15,18 @@ import java.time.LocalDate;
 @Builder
 @Entity
 public class Student {
+    public static final String SEQUENCE_NAME="STUDENT_ID_GENERATE" ;
     @Id
     @Column(name = "codigo")
+    @SequenceGenerator(
+            name=SEQUENCE_NAME,
+            sequenceName = SEQUENCE_NAME+"_bd",
+            allocationSize = 1
+    )
+    @GeneratedValue(
+            strategy = SEQUENCE,
+            generator = SEQUENCE_NAME
+    )
     private Long id;
     @Column(name = "NOME", length = 200, nullable = false, unique = true)
     private String name;

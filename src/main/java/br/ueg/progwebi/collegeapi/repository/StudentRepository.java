@@ -17,4 +17,6 @@ public interface StudentRepository
     //JPQL
     @Query("from Student s where s.course = :course")
     Optional<List<Student>> findAllStudentsCourse(String course);
+
+    Optional<Student> findTopByOrderByIdDesc();
 }
