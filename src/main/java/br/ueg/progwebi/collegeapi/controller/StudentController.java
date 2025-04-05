@@ -1,17 +1,15 @@
 package br.ueg.progwebi.collegeapi.controller;
 
-import br.ueg.progwebi.collegeapi.controller.exceptions.ResourceNotFoundException;
 import br.ueg.progwebi.collegeapi.dto.StudentCreateDTO;
 import br.ueg.progwebi.collegeapi.model.Student;
 import br.ueg.progwebi.collegeapi.service.StudentService;
 import br.ueg.progwebi.collegeapi.service.exceptions.BusinessException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Objects;
 
 @RestController
 @RequestMapping(path = "/student")
@@ -26,15 +24,9 @@ public class StudentController {
     }
 
     @PostMapping
-    public Student create(@RequestBody StudentCreateDTO student){
+    public ResponseEntity<Student> create(@RequestBody StudentCreateDTO student){
         Student newStudent = studentCreateDTOToModel(student);
-        Student returnStudent;
-        try {
-            returnStudent = studentService.create(newStudent);
-        }catch (BusinessException e){
-            throw new ResponseStatusException(e.getCodeError(), e.getMessage(),e);
-        }
-        return returnStudent;
+        return ResponseEntity.ok(studentService.create(newStudent));
     }
 
     private static Student studentCreateDTOToModel(StudentCreateDTO student) {
@@ -60,25 +52,12 @@ public class StudentController {
 
     @GetMapping(path = "/{id}")
     public Student getById(@PathVariable Long id){
-        Student student = this.studentService.getbyId(id);
-        // Essa solução tem um problem de responsabilidade.
-        // visto que a definição da mensagem deveria ser do service e não
-        // da camada de visão.
-        if(Objects.isNull(student)){
-            throw new ResourceNotFoundException(
-                    "Cliente não localizado");
-        }
-        return student;
+
+        return this.studentService.getbyId(id);
     }
 
     @DeleteMapping(path = "/{id}")
     public Student delete(@PathVariable Long id){
-        Student student;
-        try{
-            student = this.studentService.delete(id);
-        }catch (BusinessException e){
-            throw new ResponseStatusException(e.getCodeError(), e.getMessage(),e);
-        }
-        return student;
+        return this.studentService.delete(id);
     }
 }

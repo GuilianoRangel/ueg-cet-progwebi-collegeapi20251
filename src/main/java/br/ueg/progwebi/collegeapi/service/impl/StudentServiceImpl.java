@@ -28,10 +28,12 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public Student getbyId(Long id) {
         Optional<Student> student = this.repository.findById(id);
-        if (student.isPresent()) {
+
+        if(Boolean.FALSE.equals(student.isPresent())){
+            throw new BusinessException("Student id: "+id+" não encontrado", 404);
+        }else{
             return student.get();
         }
-        return null;
     }
 
     @Override
@@ -81,20 +83,16 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public Student delete(Long id) {
-        Optional<Student> student = repository.findById(id);
-
-        if(Boolean.FALSE.equals(student.isPresent())){
-            throw new BusinessException("Student id: "+id+" não encontrado", 404);
-        }
+        Student student = this.getbyId(id);
 
         try {
-            repository.delete(student.get());
+            repository.delete(student);
         }catch (DataIntegrityViolationException e){
             throw new BusinessException("Student id: "+id+" não pode ser removido," +
                     " por questões de integridade");
         }
 
-        return student.get();
+        return student;
     }
 
     @Override
