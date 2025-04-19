@@ -71,14 +71,22 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public Student update(Student student) {
+    public Student update(Long id, Student studentUpdate) {
+        Student dbStudent = this.getbyId(id);
+        updateValidation(studentUpdate);
+        dbStudent.setName(studentUpdate.getName());
+        dbStudent.setCourse(studentUpdate.getCourse());
+
+        return repository.save(dbStudent);
+    }
+
+    private static void updateValidation(Student student) {
         if(Strings.isEmpty(student.getName()) ||
                 Objects.isNull(student.getId()) ||
                 student.getId().longValue()==0
         ){
-            throw new RuntimeException("Information incomplete (name or ID)");
+            throw new BusinessException("Information incomplete (name or ID)");
         }
-        return repository.save(student);
     }
 
     @Override

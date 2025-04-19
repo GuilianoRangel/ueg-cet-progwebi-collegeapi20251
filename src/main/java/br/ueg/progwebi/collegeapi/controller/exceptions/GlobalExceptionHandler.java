@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.lang.reflect.InvocationTargetException;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -25,6 +27,12 @@ public class GlobalExceptionHandler {
             this.code = code;
             this.message = message;
         }
+    }
+
+    @ExceptionHandler({ InvocationTargetException.class, RuntimeException.class, Exception.class })
+    public ResponseEntity<Object> handleException(final Throwable e) {
+        ErrorResponse error = new ErrorResponse(500, e.getMessage());
+        return new ResponseEntity<>(error, HttpStatusCode.valueOf(500));
     }
 }
 

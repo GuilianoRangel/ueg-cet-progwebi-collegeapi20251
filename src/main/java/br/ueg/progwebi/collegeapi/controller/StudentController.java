@@ -1,13 +1,11 @@
 package br.ueg.progwebi.collegeapi.controller;
 
-import br.ueg.progwebi.collegeapi.dto.StudentCreateDTO;
+import br.ueg.progwebi.collegeapi.dto.StudentDataDTO;
 import br.ueg.progwebi.collegeapi.model.Student;
 import br.ueg.progwebi.collegeapi.service.StudentService;
-import br.ueg.progwebi.collegeapi.service.exceptions.BusinessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -24,12 +22,12 @@ public class StudentController {
     }
 
     @PostMapping
-    public ResponseEntity<Student> create(@RequestBody StudentCreateDTO student){
-        Student newStudent = studentCreateDTOToModel(student);
+    public ResponseEntity<Student> create(@RequestBody StudentDataDTO student){
+        Student newStudent = studentDTOToModel(student);
         return ResponseEntity.ok(studentService.create(newStudent));
     }
 
-    private static Student studentCreateDTOToModel(StudentCreateDTO student) {
+    private static Student studentDTOToModel(StudentDataDTO student) {
         Student newStudent = Student.builder()
                 .course(student.getCourse())
                 .name(student.getName())
@@ -37,12 +35,12 @@ public class StudentController {
         return newStudent;
     }
 
-    @PostMapping(path = "/{id}")
+    @PutMapping(path = "/{id}")
     public Student update(
             @PathVariable Long id,
-            @RequestBody Student student){
-        student.setId(id);
-        return studentService.update(student);
+            @RequestBody StudentDataDTO studentDTO){
+        Student studentUpdate = studentDTOToModel(studentDTO);
+        return studentService.update(id, studentUpdate);
     }
 
     @GetMapping(path = "/course/{course}")
