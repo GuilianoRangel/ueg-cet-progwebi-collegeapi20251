@@ -1,6 +1,7 @@
 package br.ueg.progwebi.collegeapi.controller.exceptions;
 
 import br.ueg.progwebi.collegeapi.service.exceptions.BusinessException;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -9,8 +10,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.lang.reflect.InvocationTargetException;
 
-@RestControllerAdvice
+//@RestControllerAdvice
 public class GlobalExceptionHandler {
+
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex) {
