@@ -1,7 +1,6 @@
 package br.ueg.progwebi.collegeapi.service.impl;
 
 import br.ueg.progwebi.collegeapi.model.Task;
-import br.ueg.progwebi.collegeapi.model.Task;
 import br.ueg.progwebi.collegeapi.repository.TaskRepository;
 import br.ueg.progwebi.collegeapi.service.TaskService;
 import br.ueg.progwebi.collegeapi.service.exceptions.BusinessException;
@@ -14,16 +13,16 @@ import java.util.List;
 public class TaskServiceImpl implements TaskService {
 
     @Autowired
-    private TaskRepository taskRepository;
+    private TaskRepository repository;
 
     @Override
     public List<Task> listAll() {
-        return taskRepository.findAll();
+        return repository.findAll();
     }
 
     @Override
     public Task getbyId(Long id) {
-        return taskRepository.findById(id).orElse(null);
+        return repository.findById(id).orElse(null);
     }
 
     @Override
@@ -33,25 +32,25 @@ public class TaskServiceImpl implements TaskService {
         }
         task.setId(null);
         task.setCompleted(false);
-        return taskRepository.save(task);
+        return repository.save(task);
     }
 
     @Override
     public Task update(Long id, Task task) {
-        Task taskDB = taskRepository.findById(id).orElse(null);
+        Task taskDB = repository.findById(id).orElse(null);
         if(taskDB!=null){
             taskDB.setDescription(task.getDescription());
             taskDB.setCompleted(task.getCompleted());
-            return taskRepository.save(taskDB);
+            return repository.save(taskDB);
         }
         return null;
     }
 
     @Override
     public Task delete(Long id) {
-        Task task = taskRepository.findById(id).orElse(null);
+        Task task = repository.findById(id).orElse(null);
         if(task != null){
-            this.taskRepository.delete(task);
+            this.repository.delete(task);
         }else{
             throw new BusinessException("Tarefa não existe");
         }
