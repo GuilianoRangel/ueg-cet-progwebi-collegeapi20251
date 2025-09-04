@@ -15,55 +15,40 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Service
-public class StudentServiceImpl implements StudentService {
+public class StudentServiceImpl
+        extends CrudGenericServiceImpl<Student, Long, StudentRepository>
+        implements StudentService {
 
-    @Autowired
-    private StudentRepository repository;
+    private StudentRepository rep = null;
 
-    @Override
-    public List<Student> listAll() {
-        return repository.findAll();
-    }
-
-    @Override
-    public Student getbyId(Long id) {
-        Optional<Student> student = this.repository.findById(id);
-
-        if(Boolean.FALSE.equals(student.isPresent())){
-            throw new BusinessException("Student id: "+id+" não encontrado", 404);
-        }else{
-            return student.get();
+    private StudentRepository getLocalRepository(){
+        if(this.rep == null){
+            this.rep = (StudentRepository) this.repository;
         }
+        return this.rep;
     }
 
-    @Override
-    public Student create(Student student) {
-        createValidation(student);
-        prepareToCreate(student);
-        return repository.save(student);
-
-    }
-
-    private Student prepareToCreate(Student student) {
+    protected Student prepareToCreate(Student student) {
         student.setRegisterDate(LocalDate.now());
         student.setRegisterNumber(getNewRegisterNumberStudent());
         return student;
     }
 
     private String getNewRegisterNumberStudent() {
-        Optional<Student> topByOrderByIdDesc = this.repository.findTopByOrderByIdDesc();
+
+        Optional<Student> topByOrderByIdDesc = this.getLocalRepository().findTopByOrderByIdDesc();
         Student topStudent = topByOrderByIdDesc.orElse(Student.builder().id(0L).build());
         Long newId = topStudent.getId()+1;
         Integer year = LocalDate.now().getYear();
         return year.toString().concat(newId.toString());
     }
 
-    private void createValidation(Student student) {
+    protected void createValidation(Student student) {
         if(Strings.isEmpty(student.getName())){
             throw new BusinessException("Name não pode ser nulo ou vazio");
         }
 
-        Optional<Student> checkExist2 = repository.findByName(student.getName());
+        Optional<Student> checkExist2 = this.getLocalRepository().findByName(student.getName());
         if(checkExist2.isPresent()){
             throw new BusinessException("Já existe um estudante com esse nome:"+student
                     .getName());
@@ -71,16 +56,14 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public Student update(Long id, Student studentUpdate) {
-        Student dbStudent = this.getbyId(id);
-        updateValidation(studentUpdate);
-        dbStudent.setName(studentUpdate.getName());
-        dbStudent.setCourse(studentUpdate.getCourse());
-
-        return repository.save(dbStudent);
+    protected Student prepareToUpdate(Student studentUpdate) {
+        studentUpdate.setName(studentUpdate.getName());
+        studentUpdate.setCourse(studentUpdate.getCourse());
+        return  studentUpdate;
     }
 
-    private static void updateValidation(Student student) {
+
+    protected void updateValidation(Student student) {
         if(Strings.isEmpty(student.getName()) ||
                 Objects.isNull(student.getId()) ||
                 student.getId().longValue()==0
@@ -89,23 +72,10 @@ public class StudentServiceImpl implements StudentService {
         }
     }
 
-    @Override
-    public Student delete(Long id) {
-        Student student = this.getbyId(id);
-
-        try {
-            repository.delete(student);
-        }catch (DataIntegrityViolationException e){
-            throw new BusinessException("Student id: "+id+" não pode ser removido," +
-                    " por questões de integridade");
-        }
-
-        return student;
-    }
 
     @Override
     public List<Student> listStudentsCourse(String course) {
-        Optional<List<Student>> allStudentsCourse = repository.findAllStudentsCourse(course);
+        Optional<List<Student>> allStudentsCourse = this.getLocalRepository().findAllStudentsCourse(course);
         return allStudentsCourse.orElseGet(List::of);
         /* o returno acima é equivalente ao código abaixo
         if(allStudentsCourse.isPresent()){
